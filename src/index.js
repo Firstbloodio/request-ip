@@ -49,7 +49,14 @@ function getClientIp(req) {
 
     // Server is probably behind a proxy.
     if (req.headers) {
-        
+
+                // Cloudflare.
+        // @see https://support.cloudflare.com/hc/en-us/articles/200170986-How-does-Cloudflare-handle-HTTP-Request-headers-
+        // CF-Connecting-IP - applied to every request to the origin.
+        if (is.ip(req.headers['cf-connecting-ip'])) {
+            return req.headers['cf-connecting-ip'];
+        }
+
         // Standard headers used by Amazon EC2, Heroku, and others.
         if (is.ip(req.headers['x-client-ip'])) {
             return req.headers['x-client-ip'];
@@ -59,13 +66,6 @@ function getClientIp(req) {
         const xForwardedFor = getClientIpFromXForwardedFor(req.headers['x-forwarded-for']);
         if (is.ip(xForwardedFor)) {
             return xForwardedFor;
-        }
-
-        // Cloudflare.
-        // @see https://support.cloudflare.com/hc/en-us/articles/200170986-How-does-Cloudflare-handle-HTTP-Request-headers-
-        // CF-Connecting-IP - applied to every request to the origin.
-        if (is.ip(req.headers['cf-connecting-ip'])) {
-            return req.headers['cf-connecting-ip'];
         }
 
         // Fastly and Firebase hosting header (When forwared to cloud function)
